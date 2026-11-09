@@ -8,7 +8,8 @@ val plugins = gradle.includedBuild("plugins")
 
 tasks.named("build") { dependsOn(plugins.task(":build")) }
 tasks.named("check") { dependsOn(plugins.task(":check")) }
-tasks.named("clean") { dependsOn(plugins.task(":clean")) }
+// No "clean" forwarding: this build uses the plugins build to configure arch-rules, so
+// cleaning it in the same run deadlocks. Clean it separately: ./gradlew -p plugins clean
 
 tasks.register("publishToMavenLocal") {
     group = "publishing"
