@@ -4,6 +4,7 @@ rootProject.name = "ticketing-build-conventions"
 // (arch-rules is built with ticketing.java-conventions) and lets one command build both.
 includeBuild("plugins")
 
+include("arch-rules")
 
 dependencyResolutionManagement {
     repositories {
