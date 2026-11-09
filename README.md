@@ -93,6 +93,7 @@ Rules:
 ./gradlew -p samples/hexagonal-sample build  # sample consumes them from ~/.m2
 samples/verify-failure-cases.sh              # baseline passes, every violation fails
 ./gradlew spotlessApply                      # fix formatting
+./gradlew clean && ./gradlew -p plugins clean # full clean (two runs: see build.gradle.kts)
 ```
 
 ## Versioning and releasing
