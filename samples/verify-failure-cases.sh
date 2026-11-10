@@ -112,6 +112,36 @@ public class SeatPolicy {}
 JAVA
 expect_failure "archunit-spring-in-domain-package" "ArchitectureTest > isHexagonal() FAILED"
 
+# 5. Generated code (under build/generated) that is untested and badly formatted must NOT
+#    fail the build: it is excluded from Spotless and JaCoCo (conventions 0.1.1).
+fresh_copy
+cat >>"$WORK/sample/domain/build.gradle.kts" <<'KTS'
+
+val generateDemo by tasks.registering {
+    val out = layout.buildDirectory.dir("generated/sources/demo/java/main")
+    outputs.dir(out)
+    doLast {
+        val dir = out.get().asFile.resolve("io/github/azneotec/ticketing/sample/domain/gen")
+        dir.mkdirs()
+        dir.resolve("Generated.java").writeText(
+            "package io.github.azneotec.ticketing.sample.domain.gen;\n" +
+                "public final class Generated { private Generated() {}\n" +
+                "      public static int   twice(int x){ if (x > 0) { return x * 2; } return 0; }\n" +
+                "  public static int thrice(int x) { int y = x * 3; return y; } }\n"
+        )
+    }
+}
+sourceSets.main { java.srcDir(generateDemo) }
+KTS
+if run_build; then
+  echo "OK    generated-code-ignored: untested, badly formatted generated code builds"
+  PASS=$((PASS + 1))
+else
+  echo "FAIL  generated-code-ignored: build failed. Last lines:"
+  tail -20 "$WORK/log"
+  FAIL=$((FAIL + 1))
+fi
+
 echo
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
