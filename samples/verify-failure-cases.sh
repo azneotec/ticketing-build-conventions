@@ -117,7 +117,7 @@ expect_failure "archunit-spring-in-domain-package" "ArchitectureTest > isHexagon
 fresh_copy
 cat >>"$WORK/sample/domain/build.gradle.kts" <<'KTS'
 
-val generateDemo by tasks.registering {
+val generateDemo = tasks.register("generateDemo") {
     val out = layout.buildDirectory.dir("generated/sources/demo/java/main")
     outputs.dir(out)
     doLast {
