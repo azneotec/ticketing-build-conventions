@@ -101,9 +101,12 @@ The version comes from Git tags, set by hand (`gradle/version.gradle.kts`):
 
 | State of `HEAD` | Version |
 |---|---|
-| exactly on tag `vX.Y.Z` | `X.Y.Z` |
+| exactly on tag `vX.Y.Z`, clean working tree | `X.Y.Z` |
+| exactly on tag `vX.Y.Z`, uncommitted changes | `X.Y.(Z+1)-SNAPSHOT` |
 | commits after `vX.Y.Z` | `X.Y.(Z+1)-SNAPSHOT` |
 | no tag yet | `0.1.0-SNAPSHOT` |
+
+A dirty tree (anything in `git status --porcelain`) is always a `-SNAPSHOT`, so a local build can never overwrite a release in `~/.m2` (since 0.1.2).
 
 To release (semantic versioning: breaking change → major, new feature → minor, fix → patch):
 1. Make sure `master` is clean and `./gradlew build` and `samples/verify-failure-cases.sh` pass.
@@ -111,7 +114,7 @@ To release (semantic versioning: breaking change → major, new feature → mino
 3. `git tag -a vX.Y.Z -m "vX.Y.Z"`
 4. `./gradlew build publishToMavenLocal`, then `samples/verify-failure-cases.sh`.
 5. `git push && git push origin vX.Y.Z`
-6. Afterwards, set the sample back to `X.Y.(Z+1)-SNAPSHOT` for development.
+6. Afterwards, set the sample to `X.Y.(Z+1)-SNAPSHOT` for development, commit, then run `./gradlew publishToMavenLocal`. Without that publish, the sample (and `samples/verify-failure-cases.sh`) can't resolve the new `-SNAPSHOT`.
 
 Services then bump `ticketingConventionsVersion` in their own `gradle.properties`.
 

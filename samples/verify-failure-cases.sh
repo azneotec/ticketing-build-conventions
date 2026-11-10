@@ -142,6 +142,29 @@ else
   FAIL=$((FAIL + 1))
 fi
 
+# 6. Versioning: a release tag on a clean tree gives the release version, but uncommitted work on
+#    that same tag must give a -SNAPSHOT (conventions 0.1.2), so a dirty build never overwrites a
+#    release in mavenLocal. Runs on a throw-away copy of the whole repo with a fake tag v9.9.9.
+rsync -a --exclude build --exclude .gradle --exclude .kotlin "$REPO/" "$WORK/repo/"
+git -C "$WORK/repo" add -A
+git -C "$WORK/repo" commit -q --allow-empty -m "verify: snapshot of the working tree"
+git -C "$WORK/repo" tag v9.9.9
+project_version() { "$REPO/gradlew" -p "$WORK/repo" -q :arch-rules:properties | sed -n 's/^version: //p'; }
+expect_version() { # $1 = case name, $2 = expected version
+  local actual
+  actual="$(project_version)"
+  if [ "$actual" = "$2" ]; then
+    echo "OK    $1: version is $2"
+    PASS=$((PASS + 1))
+  else
+    echo "FAIL  $1: expected version $2, got '$actual'"
+    FAIL=$((FAIL + 1))
+  fi
+}
+expect_version "version-clean-on-tag" "9.9.9"
+echo "uncommitted" >"$WORK/repo/dirty.txt"
+expect_version "version-dirty-on-tag" "9.9.10-SNAPSHOT"
+
 echo
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
